@@ -6,6 +6,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net"
 
@@ -20,11 +21,14 @@ const (
 )
 
 // server is used to implement helloworld.GreeterServer.
-type serverLogin struct{}
+type serverLogin struct {
+	LoginCount int
+}
 
 // SayHello implements helloworld.GreeterServer
 func (s *serverLogin) LoginRequest(ctx context.Context, args *proto.UserLoginRequest) (*proto.UserLoginResponse, error) {
-	log.Printf("Received: %v", args.GetId())
+	s.LoginCount += 1
+	log.Printf("Received=: %v,LoginCount: %d", args.GetId(), s.LoginCount)
 	return &proto.UserLoginResponse{Code: USER_LOGIN_SUCCEDD, Data: &proto.UserData{
 		Name:   "Miko",
 		Coin:   args.GetId() + 9999,
@@ -32,8 +36,21 @@ func (s *serverLogin) LoginRequest(ctx context.Context, args *proto.UserLoginReq
 	}}, nil
 }
 
+var portStr string
+
+// func init() {
+// 	flag.StringVar(&portStr, "port", "", "input port")
+// }
+
 func main() {
-	lis, err := net.Listen("tcp", port)
+	flag.StringVar(&portStr, "port", "", "input port")
+	flag.Parse()
+	if portStr == "" {
+		log.Fatalf("failed to get portStr: %v", portStr)
+	} else {
+		log.Printf("portStr: %v", portStr)
+	}
+	lis, err := net.Listen("tcp", portStr)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
